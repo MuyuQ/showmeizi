@@ -74,8 +74,8 @@ def parse_data(html):
             tmp_list = tmpbs4.find('div', {'class': 'swiper-wrapper'}). \
                 find_all('img', {'class': 'swiper-lazy'})
             pics_url = []
-            for index, tmp in enumerate(tmp_list):
-                pic_url = URL + tmp_list[index]['data-src']
+            for tmp in tmp_list:
+                pic_url = URL + tmp['data-src']
                 pics_url.append(pic_url)
         except HTTPError:
             print('保存pics出错')
@@ -101,7 +101,8 @@ def download_pic(pics_url, filename):
             img = requests.get(pic, headers=headers)
         except ConnectionError:
             print('下载出错')
-        with open(pic[-8:], 'wb') as file:
+        name = re.findall(r"([\w]*\.(jpg|png|jpge))", pic)
+        with open(name[0][0], 'wb') as file:
             file.write(img.content)
     print('%s下载完毕' % filename)
 
@@ -119,6 +120,3 @@ if __name__ == '__main__':
         threads.append(threading.Thread(target=parse_data, args=(html[i],)))
     for t in threads:
         t.start()
-
-    time = time.time() - start
-    print(time)
