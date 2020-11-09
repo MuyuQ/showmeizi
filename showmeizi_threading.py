@@ -1,4 +1,5 @@
 import os
+import threading
 import time
 import re
 
@@ -32,7 +33,7 @@ def get_data(url):
         r.raise_for_status()
         return r.text
     except Exception as e:
-        print(e)
+        print('获取地址出错')
 
 
 def parse_data(html):
@@ -51,9 +52,9 @@ def parse_data(html):
             for x in range(0, len(tmp_list)):
                 pic_url = URL + tmp_list[x]['data-src']
                 pics_url.append(pic_url)
-            download_pic(pics_url, name)
         except Exception as e:
-            print(e)
+            print('保存pics出错')
+        download_pic(pics_url,filename=name)
 
 
 def download_pic(pics_url, filename):
@@ -61,26 +62,31 @@ def download_pic(pics_url, filename):
         if not os.path.exists(os.path.join(FILE_PATH, filename)):
             os.mkdir(os.path.join(FILE_PATH, filename))
         os.chdir(FILE_PATH + filename)
-
-        try:
-            print('开始下载%s'%filename)
-            for pic in pics_url:
-                img = requests.get(pic, headers=headers)
-                with open(pic[-8:], 'wb') as f:
-                    f.write(img.content)
-            print('%s已经保存完毕'%filename)
-        except Exception as e:
-            print(e)
     except Exception as e:
-        print(e)
-
+        print('检测目录出错')
+    try:
+        print('开始下载%s'%filename)
+        for pic in pics_url:
+            img = requests.get(pic,headers=headers)
+            with open(pic[-8:],'wb') as f:
+                f.write(img.content)
+        print('%s下载完毕'%filename)
+    except Exception as e:
+        print('下载出错')
 
 if __name__ == '__main__':
     start = time.time()
     pages = get_total_page()
+    html=[]
+    threads = []
     for i in range(0, pages):
-        tmp_url = URL + MODEL +SUFFIX +'%s' % i
-        html = get_data(tmp_url)
-        parse_data(html)
+        tmp_url = URL + MODEL + SUFFIX+ '%s' % i
+        if i ==0:
+            tmp_url = URL+MODEL
+        html.append(get_data(tmp_url))
+        threads.append(threading.Thread(target=parse_data,args=(html[i],)))
+    for t in threads:
+        t.start()
+
     time = time.time()-start
     print(time)
