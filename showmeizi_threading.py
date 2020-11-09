@@ -1,3 +1,6 @@
+# -- coding: utf-8 --
+# @Time : DATEDATE{TIME}
+# @Author : Mcode
 """
 多线程爬showmeizi网图片
 """
